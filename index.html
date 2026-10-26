@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f3f1ea" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0c1412" media="(prefers-color-scheme: dark)">
+  <meta name="description" content="每 20 分钟提醒你看向窗外 20 秒，给眼睛留一点远方的轻量提醒工具。">
+  <title>远眺提醒 · 20-20-20</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="远眺">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="远眺提醒">
+        <svg class="brand-icon" viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M3 16c4.2-6.3 8.9-9.5 13-9.5S24.8 9.7 29 16c-4.2 6.3-8.9 9.5-13 9.5S7.2 22.3 3 16Z"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <circle cx="16" cy="16" r="4" fill="currentColor"/>
+        </svg>
+        <span>远眺提醒</span>
+      </a>
+      <div class="topbar-actions">
+        <button class="btn-install" id="btnInstall" type="button" hidden>安装</button>
+        <button class="icon-btn" id="btnSettings" type="button" aria-label="设置" title="设置">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z" fill="none" stroke="currentColor" stroke-width="1.7"/>
+            <path d="M19.4 13.2a7.6 7.6 0 0 0 0-2.4l2-1.5-2-3.4-2.3.9a7.3 7.3 0 0 0-2-1.2L14.7 3h-4l-.4 2.6a7.3 7.3 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5a7.6 7.6 0 0 0 0 2.4l-2 1.5 2 3.4 2.3-.9a7.3 7.3 0 0 0 2 1.2l.4 2.6h4l.4-2.6a7.3 7.3 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5Z"
+                  fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="card">
+      <div class="dial">
+        <svg class="dial-svg" viewBox="0 0 260 260" aria-hidden="true">
+          <defs>
+            <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" class="stop-a"/>
+              <stop offset="100%" class="stop-b"/>
+            </linearGradient>
+          </defs>
+          <circle class="dial-track" cx="130" cy="130" r="112"/>
+          <circle class="dial-progress" id="ring" cx="130" cy="130" r="112"/>
+        </svg>
+        <div class="dial-center">
+          <p class="dial-label" id="stateLabel">距离下一次远眺</p>
+          <p class="dial-time" id="countdown">20:00</p>
+          <p class="dial-sub" id="nextAt">正在准备…</p>
+        </div>
+      </div>
+
+      <p class="hint">20-20-20 法则：每 20 分钟，看向 6 米外的窗外 20 秒。</p>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="btnRest" type="button">立即远眺</button>
+        <button class="btn btn-ghost" id="btnToggle" type="button">暂停</button>
+      </div>
+
+      <div class="card-foot">
+        <span id="meta">每 20 分钟 · 20 秒</span>
+        <span class="dot" aria-hidden="true"></span>
+        <span>今日已完成 <b id="doneCount">0</b> 次</span>
+        <button class="foot-link" id="btnReset" type="button">重置计时</button>
+      </div>
+    </main>
+
+    <p class="page-note">提醒只发生在这台设备上，不会上传任何数据。</p>
+  </div>
+
+  <dialog class="sheet" id="settings" aria-labelledby="settingsTitle">
+    <form method="dialog" class="sheet-inner">
+      <header class="sheet-head">
+        <h2 id="settingsTitle">设置</h2>
+        <button class="icon-btn close" type="submit" value="close" aria-label="关闭">×</button>
+      </header>
+
+      <div class="field">
+        <div class="field-head">
+          <label for="interval">提醒间隔</label>
+          <output id="intervalOut" for="interval">20 分钟</output>
+        </div>
+        <input type="range" id="interval" min="5" max="120" step="5" value="20">
+        <div class="field-foot"><span>5 分钟</span><span>120 分钟</span></div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <label for="rest">每次远眺</label>
+          <output id="restOut" for="rest">20 秒</output>
+        </div>
+        <input type="range" id="rest" min="10" max="60" step="5" value="20">
+        <div class="field-foot"><span>10 秒</span><span>60 秒</span></div>
+      </div>
+
+      <div class="switch-list">
+        <div class="switch-row">
+          <span><b>提示音</b><small>到点时播放一声柔和的铃音</small></span>
+          <label class="switch"><input type="checkbox" id="sound"><i></i></label>
+        </div>
+        <div class="switch-row">
+          <span><b>系统通知</b><small>切到别的标签页时也能收到弹窗</small></span>
+          <label class="switch"><input type="checkbox" id="notify"><i></i></label>
+        </div>
+        <div class="switch-row" id="rowVibrate">
+          <span><b>振动</b><small>手机端到点时轻轻震动两下</small></span>
+          <label class="switch"><input type="checkbox" id="vibrate"><i></i></label>
+        </div>
+        <div class="switch-row" id="rowWake">
+          <span><b>屏幕常亮</b><small>计时期间不让手机自动锁屏</small></span>
+          <label class="switch"><input type="checkbox" id="wakeLock"><i></i></label>
+        </div>
+      </div>
+
+      <p class="sheet-note">所有设置只保存在本机。开启「系统通知」时，浏览器会请求一次通知权限。</p>
+      <button class="btn btn-primary wide" type="submit" value="close">完成</button>
+    </form>
+  </dialog>
+
+  <section class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="overlayTitle" aria-hidden="true" hidden>
+    <div class="overlay-inner">
+      <p class="overlay-kicker">20 · 20 · 20</p>
+      <h2 id="overlayTitle">抬头，看向窗外</h2>
+      <p class="overlay-text">找一处 6 米以外的景物，慢慢眨几次眼。<br>这 20 秒，不用想任何事情。</p>
+      <div class="rest-dial" id="restDial">
+        <div class="rest-dial-inner"><span id="restCount">20</span><small>秒</small></div>
+      </div>
+      <div class="overlay-actions">
+        <button class="btn btn-light" id="btnFinish" type="button">我已完成</button>
+        <button class="btn btn-outline" id="btnSnooze" type="button">5 分钟后再提醒</button>
+      </div>
+      <p class="overlay-note" id="overlayNote">今日第 1 次 · 看向 6 米外</p>
+    </div>
+  </section>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
